@@ -11,7 +11,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Great+Vibes&display=swap" rel="stylesheet">
-<link rel="preload" as="image" href="invitation_opening.png">
+<link rel="preconnect" href="https://assets.webgencyinvitations.com" crossorigin>
+<link rel="preload" as="image" href="https://assets.webgencyinvitations.com/ChatGPT_Image_Aug_17_2026_05_34_09_PM_1_fllebn.png">
 <style>
 :root{
   --bg:#0a0a0f; --bg2:#14111a; --gold:#d4af6a; --gold2:#f3dca1; --ivory:#f6efe0; --muted:#b9ae98;
@@ -29,12 +30,14 @@ body.locked{overflow:hidden;height:100vh;height:100dvh}
 #intro .stage{position:absolute;inset:0;overflow:hidden;background:#e9dfcf}
 #intro .poster,#intro video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 55%}
 #intro video{opacity:0;transition:opacity .6s}
+/* the envelope image stays on screen until the video actually starts playing */
 #intro.playing video{opacity:1}
 #intro.playing .poster{opacity:0;transition:opacity .8s .3s}
 /* If the video can't load, the envelope poster simply stays and the page opens after a moment */
 #intro.nofile video{display:none}
 .tap{position:absolute;bottom:max(9vh,60px);bottom:calc(max(9vh,60px) + env(safe-area-inset-bottom));left:0;right:0;text-align:center;z-index:5;transition:opacity .4s}
 #intro.playing .tap{opacity:0;pointer-events:none}
+.tap button:disabled{opacity:.75;animation:none;cursor:default}
 .tap button{font-family:'Cinzel',serif;letter-spacing:.3em;font-size:.85rem;color:#6b4d17;background:rgba(255,250,238,.82);border:1px solid #b8903c;padding:14px 30px;border-radius:40px;cursor:pointer;animation:pulse 2s infinite}
 .tap small{display:block;margin-top:12px;font-size:.9rem;color:#6b4d17;letter-spacing:.15em;text-shadow:0 0 8px rgba(255,250,238,.95),0 0 14px rgba(255,250,238,.9)}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(212,175,106,.5)}50%{box-shadow:0 0 0 14px rgba(212,175,106,0)}}
@@ -117,14 +120,13 @@ footer .name{font-size:3rem}
 <!-- ================= INTRO: envelope opening ================= -->
 <div id="intro">
   <div class="stage">
-    <!-- Envelope image: save it as invitation_opening.png next to this file (aim for ~150 KB) -->
-    <img class="poster" src="invitation_opening.png" alt="Open your invitation" fetchpriority="high" decoding="async">
+    <img class="poster" src="https://assets.webgencyinvitations.com/ChatGPT_Image_Aug_17_2026_05_34_09_PM_1_fllebn.png" alt="Open your invitation" fetchpriority="high" decoding="async">
     <video id="vid" playsinline webkit-playsinline preload="auto" muted>
-      <source src="invite_opening_video.mp4" type="video/mp4">
+      <source src="https://assets.webgencyinvitations.com/Animate_opening_envelope_with_light_202608171744_1_kes4s1.mp4" type="video/mp4">
     </video>
   </div>
   <button id="skip">SKIP</button>
-  <div class="tap"><button id="openBtn">TAP TO OPEN</button><small>An invitation awaits</small></div>
+  <div class="tap"><button id="openBtn" disabled>LOADING…</button><small>An invitation awaits</small></div>
 </div>
 
 <!-- ================= MUSIC ================= -->
@@ -158,7 +160,6 @@ footer .name{font-size:3rem}
     <div class="amp">&amp;</div>
     <h1 class="name">Prachi</h1>
     <p class="parents">(D/O Smt. Mona &amp; Shri Hitesh Sanghvi)</p>
-    <p class="eyebrow" style="margin-top:34px;opacity:.7">Scroll down ↓</p>
   </section>
 
   <section id="date" class="reveal">
@@ -168,8 +169,8 @@ footer .name{font-size:3rem}
       <div class="dateshow"><div class="d">05</div><div class="m">DECEMBER</div><div class="y">2026</div></div>
       <canvas id="scratch"></canvas>
     </div>
-    <p class="hint" id="hint">✨ Scratch the foil to reveal the date</p>
-    <button class="linkbtn" id="quick">Quick reveal ✨</button>
+    <p class="hint" id="hint">Scratch the foil to reveal the date</p>
+    <button class="linkbtn" id="quick">Quick reveal</button>
   </section>
 
   <section id="countdown" class="reveal">
@@ -228,7 +229,7 @@ footer .name{font-size:3rem}
     <p class="eyebrow">we can't wait to celebrate</p>
     <p class="eyebrow">this beautiful beginning with you!</p>
     <div class="ornament">✦</div>
-    <div class="name">Keneel &amp; Prachi</div>
+    <div class="name">Shah's &amp; Sanghvi's</div>
   </footer>
 </main>
 
@@ -247,6 +248,12 @@ footer .name{font-size:3rem}
   var intro=document.getElementById('intro'), vid=document.getElementById('vid');
   var entered=false, started=false;
   try{ vid.load(); }catch(e){}   // start fetching the video right away (iOS ignores preload="auto")
+  // Button stays on "LOADING…" until the video can play; on a very slow network it unlocks after 5s anyway
+  var openBtn=document.getElementById('openBtn'), isReady=false, readyT=setTimeout(ready,5000);
+  function ready(){ if(isReady) return; isReady=true; clearTimeout(readyT); openBtn.disabled=false; openBtn.textContent='TAP TO OPEN'; }
+  vid.addEventListener('loadeddata',function(){ intro.classList.add('ready'); });
+  vid.addEventListener('canplay',ready);
+  if(vid.readyState>=3) ready();
   function enter(){
     if(entered) return; entered=true;
     intro.classList.add('done');
@@ -258,6 +265,7 @@ footer .name{font-size:3rem}
   }
   function useFallback(){
     intro.classList.add('nofile');
+    ready();
     if(started){ setTimeout(enter,1500); }
   }
   vid.addEventListener('error',useFallback,true);
@@ -314,8 +322,8 @@ footer .name{font-size:3rem}
     if(p&&p.then){
       p.then(go).catch(function(){ useFallback(); });
     } else go();
-    // safety: if video stalls, move on
-    setTimeout(function(){ if(!entered && vid.paused && !vid.ended) enter(); },15000);
+    // safety: if the video hasn't actually started moving after 7s (slow network), skip straight to the invitation
+    setTimeout(function(){ if(!entered && vid.currentTime<0.1) enter(); },7000);
   };
   intro.addEventListener('click',function(e){ if(e.target===intro||e.target.classList.contains('poster')||e.target.classList.contains('stage')) document.getElementById('openBtn').click(); });
 
@@ -375,7 +383,7 @@ footer .name{font-size:3rem}
   function reveal(){
     if(revealed) return; revealed=true;
     cv.classList.add('gone');
-    document.getElementById('hint').textContent='Save the date — Saturday, 5th December 2026 💛';
+    document.getElementById('hint').textContent='✦ Save the date — Saturday, 5th December 2026 ✦';
     document.getElementById('quick').style.display='none';
     burst();
   }
